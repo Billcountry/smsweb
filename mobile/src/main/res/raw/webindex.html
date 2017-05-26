@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1.0" />
+    <title>My Phone Manager</title>
+    <script type="text/javascript" src="?asset=jquery"></script>
+    <script type="text/javascript" src="?asset=xlsx"></script>
+    <script type="text/javascript" src="?asset=actions"></script>
+    <link rel="stylesheet" href="?asset=styles"/>
+    <link rel="stylesheet" href="?asset=bubble"/>
+</head>
+<body onload="init()">
+<div id="title" >
+    <Span class="menu" id="m_conv" onclick="Switch('conversations','m_conv')">Conversations</Span>
+    <span class="menu" id="m_cont" onclick="Switch('contacts','m_cont')">Contacts</span>
+    <span class="menu" id="m_cp" onclick="Switch('clip_board','m_cp')">Copy & Paste</span>
+    <span class="menu" id="m_bs" onclick="Switch('bulksms','m_bs')">Bulk SMS</span>
+    <span class="menu" id="m_gs" onclick="Switch('group_message','m_gs')">Group SMS</span>
+    <span class="menu" id="m_about" onclick="Switch('about','m_about')">About</span>
+</div>
+<div id="body" style="clear: both;">
+
+    <div class="container" id="contacts">
+        <table style="margin: auto;">
+            <tr><td id="contact_holder">
+
+            </td></tr>
+        </table>
+    </div>
+    <div class="container" id="about">
+        <table style="margin: auto; background-color: #fff; border-radius: 5px;">
+            <tr>
+                <td><h2>Smsweb</h2></td>
+            </tr>
+            <tr>
+                <td>
+                    Text messaging tool similar to WhatsApp web using your smartphone as a server.<br>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Contact Developer</h3>
+                    Email:
+                    <a href="billcountrymwaniki@gmail.com">billcountrymwaniki@gmail.com</a><br>
+                    Twitter:
+                    <a href="https://twitter.com/Billcountry">@Billcountry</a>
+                    <br>
+                    Github: <a href="https://github.com/Billcountry/smsweb">https://github.com/Billcountry/smsweb</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="container" id="clip_board">
+        <table style="margin: auto;">
+            <tr>
+                <td><h2>Clip Board Synchronize</h2></td>
+            </tr>
+            <tr>
+                <td>
+                    Press CTRL+V to paste your data. It will automatically be copied to your phone.<br>
+                    Your phones clipboard content will always be reflected in the box below.<br>
+                    Press the copy button to get the content.
+                </td>
+            </tr>
+            <tr>
+                <td class="clipcont" id="comp_clip"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="container" id="bulksms" >
+        <table style="margin: auto;" class="holder">
+            <tr>
+                <td id="file_iput_holder" style="min-width: 50%; background-color: hsl(0, 0%, 83%); border: 2px dotted skyblue; border-radius: 7px;">
+                    <input class="upload" id="xlfile" type="file" accept=".xlsx,.xls" />
+                    <label for="xlfile" class="filelabel wrap_content"><img src="data:image/svg+xml;base64,CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgd2lkdGg9IjY0cHgiIGhlaWdodD0iNjRweCIgdmlld0JveD0iMCAwIDY0IDY0IiB2ZXJzaW9uPSIxLjEiPgo8ZyBpZD0ic3VyZmFjZTEiPgo8cGF0aCBzdHlsZT0iIHN0cm9rZTpub25lO2ZpbGwtcnVsZTpub256ZXJvO2ZpbGw6cmdiKDEyLjU0OTAyJSw0NC4zMTM3MjUlLDI3LjA1ODgyNCUpO2ZpbGwtb3BhY2l0eToxOyIgZD0iTSAxMC42NzE4NzUgMCBDIDkuMjk2ODc1IDAgOCAxLjM1NTQ2OSA4IDIuNzg5MDYyIEwgOCA2MS4yMTA5MzggQyA4IDYyLjU2NjQwNiA5LjM3NSA2NCAxMC42NzE4NzUgNjQgTCA1My4zMjgxMjUgNjQgQyA1NC42MjUgNjQgNTYgNjIuNTY2NDA2IDU2IDYxLjIxMDkzOCBMIDU2IDE4IEwgMzggMCBaIE0gMTAuNjcxODc1IDAgIi8+CjxwYXRoIHN0eWxlPSIgc3Ryb2tlOm5vbmU7ZmlsbC1ydWxlOm5vbnplcm87ZmlsbDpyZ2IoMCUsMCUsMCUpO2ZpbGwtb3BhY2l0eTowLjE5NjA3ODsiIGQ9Ik0gNDIgMTggTCA1NiAzMiBMIDU2IDE4IFogTSA0MiAxOCAiLz4KPHBhdGggc3R5bGU9IiBzdHJva2U6bm9uZTtmaWxsLXJ1bGU6bm9uemVybztmaWxsOnJnYigxMDAlLDEwMCUsMTAwJSk7ZmlsbC1vcGFjaXR5OjE7IiBkPSJNIDQ2IDI0IEwgNDYgNTAgTCAxOCA1MCBMIDE4IDI0IFogTSA0NCAyNiBMIDMwIDI2IEwgMzAgMzIgTCA0NCAzMiBaIE0gMjggMjYgTCAyMCAyNiBMIDIwIDMyIEwgMjggMzIgWiBNIDQ0IDM0IEwgMzAgMzQgTCAzMCA0MCBMIDQ0IDQwIFogTSAyOCAzNCBMIDIwIDM0IEwgMjAgNDAgTCAyOCA0MCBaIE0gNDQgNDIgTCAzMCA0MiBMIDMwIDQ4IEwgNDQgNDggWiBNIDI4IDQyIEwgMjAgNDIgTCAyMCA0OCBMIDI4IDQ4IFogTSAyOCA0MiAiLz4KPHBhdGggc3R5bGU9IiBzdHJva2U6bm9uZTtmaWxsLXJ1bGU6bm9uemVybztmaWxsOnJnYigxMDAlLDEwMCUsMTAwJSk7ZmlsbC1vcGFjaXR5OjAuMzkyMTU3OyIgZD0iTSAzOCAwIEwgNTUuOTg0Mzc1IDE4IEwgNDAuNzU3ODEyIDE4IEMgMzkuNDEwMTU2IDE4IDM4IDE2LjU3NDIxOSAzOCAxNS4yMjY1NjIgWiBNIDM4IDAgIi8+CjwvZz4KPC9zdmc+Cg=="><br>Click Here to select a file<br>Or<br>Drop your file here
+                        <br><span id="list"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span id="work_sheets">Select Worksheet:</span>
+                    <br/>
+                    <span id="records_found"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Phone Number : <select id="phone_field" class="Combo" oninput="samplephone()"><option>Select the phone number location</option></select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span id="column_headers"></span>
+                    <a id="linkneed" href=""></a>
+                    <br>
+                    <textarea id="merger_message_holder" oninput="Createsample()" class="Textarea" placeholder="Type your message here..."></textarea>
+                    <br>
+                    <div>
+                        <h3>Sample Message</h3>
+                        <span id="sample_receiver" style="max-width: 100%; background-color: #f1f1f1; border: 2px dotted skyblue; border-radius: 4px;"></span>
+                        <br><span id="sample_message" class="wrap_content" style="white-space: pre-wrap; background-color: #f1f1f1; border: 2px dotted skyblue; border-radius: 4px; width: 90%; display: block;"></span>
+                    </div>
+                    <div>
+                        <input type="button" onclick="Sendbulk()" class="button" value="Send" />
+                    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="container" id="conversations">
+        <table style="margin: auto; height: 100%;">
+            <tr>
+                <td>
+                <span id="conversation_search" style="width: 30%; height: 30px; float: left;">
+                    <input type="search" style="width: calc(100% - 8px); height: 24px; border: 1px solid darkgray; border-radius: 5px;" placeholder="Search SMS" />
+                </span>
+                <span id="conversation_title" class="groups_titles" style="border-top-left-radius: 5px; border-top-right-radius: 5px; height: 30px; float: left; width: 69%; overflow: hidden;">
+                    Conversation
+                </span>
+                    <div id="conversation_contact_holder" style="width: 30%; height: calc(100% - 50px); overflow: auto; float:left;" >
+
+                    </div>
+                    <div id="conversation_holder" style=" height: calc(100% - 150px); overflow: auto; float: left; width: calc(69% - 40px); padding-left: 20px; padding-right: 20px;">
+
+                    </div>
+                    <div id="new_text" style="height: 100px; overflow: auto; float: left; width: calc(69% - 40px); padding-left: 20px; padding-right: 20px;">
+
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="container" id="group_message">
+        <div class="" id="group_holder">
+            <span class="groups_titles">Groups</span>
+            <div id="group_list" style="height: calc(100% - 190px); overflow: auto;">
+
+            </div>
+            <div id="group_actions" style="height: 160px; background-color: #aaffaa;">
+                <fieldset>
+                    <legend id="leg_gp_ac">Group Actions</legend>
+                    <input type="button" value="Send Message" onclick="document.querySelector('#new_group_text').style.display = 'block';" title="Send message to members of this group"/>
+                    <input type="button" value="Remove Group" onclick=" document.querySelector('#remove_group').style.display = 'block';" title="Delete this group"/>
+                    <input type="button" value="New Group" onclick="document.querySelector('#new_group').style.display='block';" title="Create a new group"/>
+                </fieldset>
+                <fieldset>
+                    <legend id="leg_gp_add">Add Members</legend>
+                    <input type="button" onclick="Editgroup('edit_excel')" value="From Excel File" title="Select contacts from a file"/>
+                    <input type="button" onclick="Editgroup('edit_manual')" value="Add New" title="Type the name and number of the new contact"/>
+                    <input type="button" onclick="Editgroup('edit_contacts')" value="From Contacts" title="Select member of the group from your phone contacts"/>
+                </fieldset>
+            </div>
+        </div>
+        <div class="" id="group_members">
+            <span class="groups_titles" id="gr_title">Groups Members</span>
+            <div style="border-left: 1px solid hsla(0, 0%, 0%, 0.70); height: calc(100% - 30px); overflow: auto;" id="group_contacts"></div>
+        </div>
+        <div id="group_editor" style="display: none;">
+            <span class="groups_titles" id="tt_editor">Groups Editor</span>
+    <span class="edit_box" id="edit_excel">
+            <input class="upload" id="xlfile_contacts" type="file" accept=".xlsx,.xls" />
+            <label id="lbl_xlfile_contacts" for="xlfile_contacts" class="filelabel"><img src="data:image/svg+xml;base64,CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgd2lkdGg9IjY0cHgiIGhlaWdodD0iNjRweCIgdmlld0JveD0iMCAwIDY0IDY0IiB2ZXJzaW9uPSIxLjEiPgo8ZyBpZD0ic3VyZmFjZTEiPgo8cGF0aCBzdHlsZT0iIHN0cm9rZTpub25lO2ZpbGwtcnVsZTpub256ZXJvO2ZpbGw6cmdiKDEyLjU0OTAyJSw0NC4zMTM3MjUlLDI3LjA1ODgyNCUpO2ZpbGwtb3BhY2l0eToxOyIgZD0iTSAxMC42NzE4NzUgMCBDIDkuMjk2ODc1IDAgOCAxLjM1NTQ2OSA4IDIuNzg5MDYyIEwgOCA2MS4yMTA5MzggQyA4IDYyLjU2NjQwNiA5LjM3NSA2NCAxMC42NzE4NzUgNjQgTCA1My4zMjgxMjUgNjQgQyA1NC42MjUgNjQgNTYgNjIuNTY2NDA2IDU2IDYxLjIxMDkzOCBMIDU2IDE4IEwgMzggMCBaIE0gMTAuNjcxODc1IDAgIi8+CjxwYXRoIHN0eWxlPSIgc3Ryb2tlOm5vbmU7ZmlsbC1ydWxlOm5vbnplcm87ZmlsbDpyZ2IoMCUsMCUsMCUpO2ZpbGwtb3BhY2l0eTowLjE5NjA3ODsiIGQ9Ik0gNDIgMTggTCA1NiAzMiBMIDU2IDE4IFogTSA0MiAxOCAiLz4KPHBhdGggc3R5bGU9IiBzdHJva2U6bm9uZTtmaWxsLXJ1bGU6bm9uemVybztmaWxsOnJnYigxMDAlLDEwMCUsMTAwJSk7ZmlsbC1vcGFjaXR5OjE7IiBkPSJNIDQ2IDI0IEwgNDYgNTAgTCAxOCA1MCBMIDE4IDI0IFogTSA0NCAyNiBMIDMwIDI2IEwgMzAgMzIgTCA0NCAzMiBaIE0gMjggMjYgTCAyMCAyNiBMIDIwIDMyIEwgMjggMzIgWiBNIDQ0IDM0IEwgMzAgMzQgTCAzMCA0MCBMIDQ0IDQwIFogTSAyOCAzNCBMIDIwIDM0IEwgMjAgNDAgTCAyOCA0MCBaIE0gNDQgNDIgTCAzMCA0MiBMIDMwIDQ4IEwgNDQgNDggWiBNIDI4IDQyIEwgMjAgNDIgTCAyMCA0OCBMIDI4IDQ4IFogTSAyOCA0MiAiLz4KPHBhdGggc3R5bGU9IiBzdHJva2U6bm9uZTtmaWxsLXJ1bGU6bm9uemVybztmaWxsOnJnYigxMDAlLDEwMCUsMTAwJSk7ZmlsbC1vcGFjaXR5OjAuMzkyMTU3OyIgZD0iTSAzOCAwIEwgNTUuOTg0Mzc1IDE4IEwgNDAuNzU3ODEyIDE4IEMgMzkuNDEwMTU2IDE4IDM4IDE2LjU3NDIxOSAzOCAxNS4yMjY1NjIgWiBNIDM4IDAgIi8+CjwvZz4KPC9zdmc+Cg=="><br>Click Here to select a file<br>Or<br>Drop your file here
+                <br>
+                <span id="list2"></span>
+            </label><br>
+            <span id="cont_sheets">
+
+            </span>
+            <br>
+            <span id="cont_sheet_fields">
+                Contact Name: <br><select id="group_sel_cont"></select><br>
+                Phone Number: <br><select id="group_sel_phone"></select>
+            </span>
+            <div>
+                <input type="button" onclick="Addfromexcel()" class="button" value="Add Contacts" />
+            </div>
+    </span>
+    <span class="edit_box" id="edit_manual">
+            <input type="text" id="group_cont_name" class="textbox" placeholder="Contact Name" /><br>
+            <input type="tel" id="group_cont_phone" class="textbox" placeholder="Phone Number" /><br>
+            <input type="button" onclick="Group_contact_add(document.querySelector('#group_cont_phone').value,document.querySelector('#group_cont_name').value)" class="button" value="Add Contacts" />
+    </span>
+    <span class="edit_box" id="edit_contacts">
+        <div class="cont_titles">
+            Contacts<br>
+            <span style="font-size: 12px; font-style: italic;">(Click to add)</span>
+        </div>
+        <div class="cont_titles">
+            Group Members<br>
+            <span style="font-size: 12px; font-style: italic;">(Double Click to remove)</span>
+        </div>
+        <div style="clear: both;"></div>
+        <div class="cont_vals" style="border-left: 1px solid hsla(0, 0%, 0%, 0.70);" id="cont_list"></div>
+        <div class="cont_vals" id="memb_list"></div>
+    </span>
+        </div>
+    </div>
+
+</div>
+
+<div  id="loader" class="cover">
+    <table style="height: 100%; margin: auto;">
+        <tr><td valign="middle" style="text-align: center; color: #FFF;">
+            <img src="data:image/gif;base64,R0lGODlhIAAgAJECAGVlZQCL2QAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQJFAACACwAAAAAIAAgAAACWoyPKCvgD2Gah7WIHaU25z11XgQm4viUCoNKqnG2L8y22hyjc5CPe+/51WzChe32AmYszKbzCY1Kp9SqtXoEKLOYLRfi/TrCYvLXzEVn1Ue2zd2Co+QjugddAAAh+QQJFAACACwAAAAAIAAgAAACWZSPecHtrmJ6tMkrasVSUx55D6iIEImYFrqoAduqsOG+cz1nbo7few4MCodEBOCITCaNyqbzCWBCp04p9Xq0YqnaLbTrrR7CVzB5OT5/02qxof00t+VqerIAACH5BAkUAAIALAAAAAAgACAAAAJOlI+py+0Po5y02ouz3rz7D4biSJYTgKaqigTuC8PrnLbx7dK0jcf6zOu9fqugMEBkHY6yJMoodD6XzJwU2pMCsDgt9+alVsOGqtX5jRUAACH5BAUUAAIALAAAAAAgACAAAAI1lI+py+0Po5y02ouz3rz7D4biSJZTgKaqaq1u2r5uLLNVvdJ4oON9/ZMFX8PZbYcq5o5ISwEAIfkEBRQAAgAsAAAAAA4AIAAAAiOMj6nL7Q+jnLTaq4TevPsPhqIAlOaJpurKtu4Lx/JM13ZaAAAh+QQFFAACACwAAAAAIAAOAAACMoSPKCvhD2Gah7WIHaU25z11XgQm4viUCoNKqnG2L8y22hyjM5CPe+/51WzChe32AmYKACH5BAkUAAIALBIAAAAOACAAAAIjhI+py+0Po5y02quE3rz7D4aiEJTmiabqyrbuC8fyTNd2WgAAIfkECRQAAgAsAAAAACAAIAAAAlCUj3nA7a5ierTJK2rFUlMeeQ+oiBCJmBa6qADbqrDhvnM9Z26O33sODAqHRETgiEwmc8omkulsQqPLGVU5vQayVy7VGwU7xVKr9kjGms+5AgAh+QQJFAACACwAAAAAIAAgAAACToyPKCvgD2Gah7WIHaU25z11XgQm4viUCoNKqnG2L8y22hyjc5CPe+/51WzChe32AmYszKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jOYWAAAh+QQFFAACACwAAAAAIAAgAAACOpSPecHtrmJ6tMkrasVSUx55D6iIEImYFrqoAduqsOG+cz1nbo7few4MCofEovGITCqXzKbzCY1KjQUAIfkEBRQAAgAsEgAAAA4AIAAAAiOEj6nL7Q+jnLTaq4TevPsPhqIQlOaJpurKtu4Lx/JM13ZaAAAh+QQFFAACACwAABIAIAAOAAACMoyPKCvgD2Gah7WIHaU25z11XgQm4viUCoNKqnG2L8y22hyjc5CPe+/51WzChe32AmYKADs=" style="background-color: #f1f1f1;"><br>
+            Working... <span id="Progress"></span>
+        </td></tr>
+        <tr><td valign="top">
+            <a style="border-radius: 5px; cursor: pointer; background-color: white; padding: 4px; font-size: 14px;" onclick="document.getElementById('loader').style.display = 'none';" title="Will continue loading and display when done">Load in Background</a>
+        </td></tr>
+    </table>
+</div>
+
+<div  id="new_text_from_cont" class="cover">
+    <table style="height: 100%; margin: auto;">
+        <tr><td valign="middle" style="text-align: center; color: #FFF;">
+            <form style="background-color: #cccccc; color: black; text-align: center; border-radius: 5px;">
+                <span class="groups_titles">New Message</span><br>
+                Phone Number<br>
+                <span id="new_text_phone_name"></span>
+                <input type="tel" class="textbox" placeholder="Phone Number" id="new_text_phone">
+                <hr>
+                Message<br>
+                <span style='background-color: #FFFFFF; display: block; margin: 3px;'>Type your message here,(CTRL + Enter) to send<br><textarea id="new_text_" onkeydown='if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey){_Sendtext(document.querySelector("#new_text_phone").value,this.value); document.querySelector("#new_text_from_cont").style.display = "none"; document.querySelector("#new_text_").value = ""; document.querySelector("#new_text_phone").value = ""; document.querySelector("#new_text_phone_name").value="";}' class="Textarea"></textarea></span>
+                <br>
+                <input type="button" value="Send" onclick='{_Sendtext(document.querySelector("#new_text_phone").value,document.querySelector("#new_text_").value); document.querySelector("#new_text_from_cont").style.display = "none"; document.querySelector("#new_text_").value = ""; document.querySelector("#new_text_phone").value = ""; document.querySelector("#new_text_phone_name").value="";}'>
+                <input type="button" value="Close" onclick="document.querySelector('#new_text_from_cont').style.display = 'none';">
+            </form>
+        </td></tr>
+    </table>
+</div>
+<div  id="new_group_text" class="cover">
+    <table style="height: 100%; margin: auto;">
+        <tr><td valign="middle" style="text-align: center; color: #FFF;">
+            <form style="background-color: #cccccc; color: black; text-align: center; border-radius: 5px;">
+                <span class="groups_titles">New Group Message</span><br>
+                To all members of:
+                <span id="new_group_text_name"></span>
+                <hr>
+                Message<br>
+                <span style='background-color: #FFFFFF; display: block; margin: 3px;'>Type your message here,(CTRL + Enter) to send<br><textarea id="new_group_text_" onkeydown='if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey){_Sendtext(document.querySelector("#new_text_phone").value,this.value); document.querySelector("#new_text_from_cont").style.display = "none"; document.querySelector("#new_text_").value = ""; document.querySelector("#new_text_phone").value = ""; document.querySelector("#new_text_phone_name").value="";}' class="Textarea"></textarea></span>
+                <br>
+                <input type="button" value="Send" onclick="{Sendtogroup(document.querySelector('#new_group_text_').value); document.querySelector('#new_group_text').style.display='none'; document.querySelector('#new_group_text_').value='';}">
+                <input type="button" value="Close" onclick="{document.querySelector('#new_group_text').style.display='none'; document.querySelector('#new_group_text_').value='';}">
+            </form>
+        </td></tr>
+    </table>
+</div>
+
+<div  id="template" class="cover">
+    <table style="height: 100%; margin: auto;">
+        <tr><td valign="middle" style="text-align: center; color: #FFF;">
+            <form style="background-color: #cccccc; color: black; text-align: center; border-radius: 5px;">
+                <span class="groups_titles">Title</span><br>
+                Group Name<br>
+                <input type="tel" class="textbox" placeholder="Group Name" id="">
+                <hr>
+                Description<br>
+                <span style='background-color: #FFFFFF; display: block; margin: 3px;'><br><textarea id="__" class="Textarea"></textarea></span>
+                <input type="button" value="Add Group" onclick="" />
+            </form>
+        </td></tr>
+    </table>
+</div>
+
+<div  id="remove_group" class="cover">
+    <table style="height: 100%; margin: auto;">
+        <tr><td valign="middle" style="text-align: center; color: #FFF;">
+            <form style="background-color: #cccccc; color: black; text-align: center; border-radius: 5px;">
+                <span class="groups_titles">Confirm Delete</span><br>
+                Are you sure you want to remove the group <span id="cur_rem_group"></span> from the database?<br>
+                All the group members will be removed too.
+                <br>
+                <input type="button" value="Remove Group" onclick="{Removegroup(); document.querySelector('#remove_group').style.display = 'none';}" />
+                <input type="button" value="Cancel" onclick="{document.querySelector('#remove_group').style.display = 'none';}" />
+            </form>
+        </td></tr>
+    </table>
+</div>
+
+<div  id="new_group" class="cover">
+    <table style="height: 100%; margin: auto;">
+        <tr><td valign="middle" style="text-align: center; color: #FFF;">
+            <form style="background-color: #cccccc; color: black; text-align: center; border-radius: 5px;">
+                <span class="groups_titles">Title</span><br>
+                Group Name<br>
+                <input type="tel" class="textbox" placeholder="Group Name" id="new_group_name">
+                <hr>
+                Description<br>
+                <span style='background-color: #FFFFFF; display: block; margin: 3px;'><br><textarea id="new_group_desc" class="Textarea"></textarea></span>
+                <input type="button" value="Add Group" onclick="{Addgoup(document.querySelector('#new_group_name').value,document.querySelector('#new_group_desc').value); document.querySelector('#new_group').style.display='none'; document.querySelector('#new_group_name').value=''; document.querySelector('#new_group_desc').value='';}" />
+                <input type="button" value="Close" onclick="{document.querySelector('#new_group_name').value=''; document.querySelector('#new_group_desc').value=''; document.querySelector('#new_group').style.display='none';}" />
+            </form>
+        </td></tr>
+    </table>
+</div>
+
+<div  id="toast" style="display: none; width: 100%; z-index: 100; height: auto; bottom: 30%; left: 0px; position: fixed;">
+    <table style="height: 100%; margin: auto; background-color: #2f3c4a; border-radius: 5px;">
+        <tr><td valign="middle" style="text-align: center;color: white; text-align: center; min-width: 50%;" id="message">
+
+        </td></tr>
+        <tr><td valign="middle" style="text-align: center; color: white;" id="message2">
+            <a style="color: antiquewhite; cursor: pointer; text-decoration: underline;" href="#" onclick="Hidetoast()">Hide</a>
+        </td></tr>
+    </table>
+</div>
+</body>
+</html>
